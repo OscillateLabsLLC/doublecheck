@@ -82,7 +82,7 @@ def test_anything_but_yes_runs_nothing(skill, answer):
 
 def test_the_question_quotes_the_user(skill):
     assert skill.dialog_renderer.render("confirm", {"utterance": "unlock the front door"}) == \
-        "You said: unlock the front door. Should I go ahead?"
+        "I think you said: unlock the front door. Should I do that?"
 
 
 def test_a_dispatch_without_a_held_label_asks_nothing(skill):

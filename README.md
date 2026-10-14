@@ -4,10 +4,10 @@ An OVOS skill that asks before running a high-risk request [Switchboard](https:/
 
 Some requests shouldn't run on a misheard word: unlocking a door, opening the garage, shutting down, clearing data.
 Switchboard never acts on these directly, and no confidence threshold makes them safe: wrong high-risk picks have
-reached 0.994 confidence. With Switchboard's `high_risk: "confirm"`, a held request is dispatched to Doublecheck,
+reached 0.994 confidence in benchmarks. With Switchboard's `high_risk: "confirm"`, a held request is dispatched to Doublecheck,
 which:
 
-- **repeats it back in the user's own words** and asks: "You said: unlock the front door. Should I go ahead?",
+- **repeats it back in the user's own words** and asks: "I think you said: unlock the front door. Should I do that?",
 - **on a clear yes**, runs exactly the held intent, with the same message ovos-core would have dispatched to its
   skill (the original utterance's data and context, the matched slots, the skill's id), so the skill can't tell
   the difference,
