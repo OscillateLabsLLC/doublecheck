@@ -80,6 +80,30 @@ def test_anything_but_yes_runs_nothing(skill, answer):
     assert seen[DoublecheckSkill.CANCELLED_EVENT][0].data["answer"] == answer
 
 
+def test_a_language_without_dialogs_holds_silently(skill):
+    """Workshop would speak the English question to a Galician speaker (0.x, 8) or nothing usable (9)."""
+    asked = answer_with(skill, "yes")
+    seen = collect(skill.bus, HELD_LABEL, "speak", DoublecheckSkill.CANCELLED_EVENT, "mycroft.skill.handler.complete")
+    switchboard_dispatch(skill, lang="gl-ES")
+    wait_for(seen, "mycroft.skill.handler.complete")
+    assert asked == [] and not seen[HELD_LABEL] and not seen["speak"]
+    assert seen[DoublecheckSkill.CANCELLED_EVENT][0].data["lang"] == "gl-ES"
+
+
+def test_a_regional_variant_uses_its_languages_dialogs(skill):
+    asked = answer_with(skill, "no")
+    seen = collect(skill.bus, "mycroft.skill.handler.complete")
+    switchboard_dispatch(skill, lang="en-GB")
+    wait_for(seen, "mycroft.skill.handler.complete")
+    assert asked == [("confirm", {"utterance": "unlock the front door"})]
+
+
+@pytest.mark.parametrize("lang, speaks", [("en-us", True), ("en-US", True), ("en-gb", True), ("gl-es", False),
+                                          ("fr-fr", False)])
+def test_speaks_checks_its_own_locale(lang, speaks):
+    assert DoublecheckSkill.speaks(lang) is speaks
+
+
 def test_the_question_quotes_the_user(skill):
     assert skill.dialog_renderer.render("confirm", {"utterance": "unlock the front door"}) == \
         "I think you said: unlock the front door. Should I do that?"
