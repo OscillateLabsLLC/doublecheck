@@ -7,12 +7,14 @@ yes it replays exactly the held intent, as ovos-core would have dispatched it; a
 Doublecheck registers no intents, so no matcher can route to it by accident; the only way in is a dispatch to
 ``<skill_id>:confirm``. The held request lives only in the handler, for one question.
 
-In a language it has no dialogs for, Doublecheck asks nothing and runs nothing: Switchboard's silent hold.
+In a language it has no dialogs for, or whose yes OVOS can't read, Doublecheck asks nothing and runs nothing:
+Switchboard's silent hold.
 """
 
 import copy
 import inspect
 from pathlib import Path
+from typing import Optional
 
 from ovos_bus_client.message import Message
 from ovos_workshop.skills.ovos import OVOSSkill
@@ -46,12 +48,30 @@ class DoublecheckSkill(OVOSSkill):
         return Message(label, data, context)
 
     @classmethod
+    def locale_for(cls, lang: str) -> Optional[Path]:
+        """This language's locale directory: the exact tag (pt-PT, pt-BR), else any of the same language."""
+        dirs = [d for d in cls.LOCALE.iterdir() if (d / "dialog" / "confirm.dialog").is_file()]
+        same = [d for d in dirs if d.name.split("-")[0].lower() == lang.split("-")[0].lower()]
+        return next((d for d in same if d.name.lower() == lang.lower()), same[0] if same else None)
+
+    @classmethod
     def speaks(cls, lang: str) -> bool:
         """Whether Doublecheck has the question in this language. Checked against its own locale directory, not
         ovos-workshop's lookup: workshop 0.x and 8 fall back to English for any language, 9 to nothing."""
-        primary = lang.split("-")[0].lower()
-        return any(d.name.split("-")[0].lower() == primary and (d / "dialog" / "confirm.dialog").is_file()
-                   for d in cls.LOCALE.iterdir())
+        return cls.locale_for(lang) is not None
+
+    def understands(self, lang: str) -> bool:
+        """Whether OVOS's yes/no engine reads this language's plain yes as yes. If not, nobody could confirm: the
+        engine may lack the language (Galician) or never match its yes words (Italian, ovos-yes-no-plugin 0.4)."""
+        get_engine = getattr(self, "_get_yesno_engine", None)
+        if not callable(get_engine):
+            return True  # ovos-workshop 0.x and 8 parse yes/no their own way; not probed
+        yes = (self.locale_for(lang) / "vocab" / "yes.voc").read_text(encoding="utf-8").splitlines()[0].strip()
+        try:
+            # pylint: disable-next=not-callable  # callable() above; pylint doesn't narrow getattr's default
+            return get_engine().yes_or_no(question="", response=yes, lang=lang) is True
+        except Exception:  # unsupported language: ValueError from ovos-yes-no-plugin
+            return False
 
     def handle_confirm(self, message: Message):
         """Ask once; replay the held request on yes, otherwise say so and run nothing."""
@@ -61,8 +81,9 @@ class DoublecheckSkill(OVOSSkill):
         dispatch = self.held_dispatch(message)  # fixed before asking: the answer can't change what runs
         utterance = message.data.get("utterance", "")
         lang = message.data.get("lang") or self.lang
-        if not self.speaks(lang):
-            self.log.warning("no %s dialogs: holding %r -> %s without asking", lang, utterance, dispatch.msg_type)
+        if not (self.speaks(lang) and self.understands(lang)):
+            self.log.warning("can't ask in %s (no dialogs, or OVOS can't read a %s yes): holding %r -> %s without "
+                             "asking", lang, lang, utterance, dispatch.msg_type)
             self.bus.emit(message.forward(self.CANCELLED_EVENT, {"utterance": utterance, "held_label":
                                                                  dispatch.msg_type, "answer": None, "lang": lang}))
             return

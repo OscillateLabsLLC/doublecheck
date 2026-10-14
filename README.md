@@ -36,13 +36,23 @@ Python 3.11-3.14. Works with ovos-workshop 0.x and current OVOS (9.x).
 
 ## Languages
 
-English, Catalan and French (`en-US`, `ca-ES`, `fr-FR`; regional variants such as `en-GB` use their language's
-dialogs). In any other language Doublecheck asks nothing and runs nothing, the same as Switchboard's silent hold,
-and logs a warning: a question in the wrong language isn't a safe question.
+The languages most OVOS skills ship: Basque, Catalan, Danish, Dutch, English, French, Galician, German, Italian,
+Persian, Polish, Portuguese (European and Brazilian), Russian, Spanish and Swedish. Regional variants use their
+language's dialogs (`en-GB` uses `en-US`).
 
-Another language needs two dialog files in `ovos_skill_doublecheck/locale/<lang>/dialog/`, `confirm.dialog` (with
-`{utterance}`) and `cancelled.dialog`, and OVOS's yes/no parser has to understand that language. Galician is
-waiting on the parser: none of ovos-workshop 0.x, 8 or 9 can read a Galician yes or no yet.
+Doublecheck only asks when it can be answered. Before asking, it checks two things:
+
+- it has the question in the user's language, and
+- OVOS's yes/no engine reads that language's plain yes (`vocab/yes.voc`) as yes.
+
+Otherwise it asks nothing and runs nothing, the same as Switchboard's silent hold, and logs a warning. As of
+ovos-yes-no-plugin 0.4, that holds **Galician** (the parser has no Galician yet) and **Italian** (its yes words
+are capitalized, so no lowercase answer ever matches). Both start asking as soon as the parser can read them. On
+ovos-workshop 0.x and 8, which parse yes/no differently, the engine check is skipped.
+
+Kabyle, also widely shipped in OVOS, is missing: it needs a native speaker. Adding a language means three files
+in `ovos_skill_doublecheck/locale/<lang>/`: `dialog/confirm.dialog` (with `{utterance}`), `dialog/cancelled.dialog`
+and `vocab/yes.voc`. The dialogs other than English were written by a non-native speaker; corrections are welcome.
 
 ## License
 
