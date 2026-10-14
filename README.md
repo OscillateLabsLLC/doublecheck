@@ -36,12 +36,13 @@ Python 3.11-3.14. Works with ovos-workshop 0.x and current OVOS (9.x).
 
 ## Languages
 
-English (`en-us`; regional variants such as `en-gb` use it too). In any other language Doublecheck asks nothing
-and runs nothing, the same as Switchboard's silent hold, and logs a warning: a question in the wrong language isn't
-a safe question.
+English, Catalan and French (`en-US`, `ca-ES`, `fr-FR`; regional variants such as `en-GB` use their language's
+dialogs). In any other language Doublecheck asks nothing and runs nothing, the same as Switchboard's silent hold,
+and logs a warning: a question in the wrong language isn't a safe question.
 
-Another language needs two dialog files in `ovos_skill_doublecheck/locale/<lang>/dialog/`: `confirm.dialog` (with
-`{utterance}`) and `cancelled.dialog`.
+Another language needs two dialog files in `ovos_skill_doublecheck/locale/<lang>/dialog/`, `confirm.dialog` (with
+`{utterance}`) and `cancelled.dialog`, and OVOS's yes/no parser has to understand that language. Galician is
+waiting on the parser: none of ovos-workshop 0.x, 8 or 9 can read a Galician yes or no yet.
 
 ## License
 

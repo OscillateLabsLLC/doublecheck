@@ -98,15 +98,22 @@ def test_a_regional_variant_uses_its_languages_dialogs(skill):
     assert asked == [("confirm", {"utterance": "unlock the front door"})]
 
 
-@pytest.mark.parametrize("lang, speaks", [("en-us", True), ("en-US", True), ("en-gb", True), ("gl-es", False),
-                                          ("fr-fr", False)])
+@pytest.mark.parametrize("lang, speaks", [("en-us", True), ("en-US", True), ("en-gb", True), ("ca-es", True),
+                                          ("fr-FR", True), ("fr-ca", True), ("gl-es", False), ("de-de", False)])
 def test_speaks_checks_its_own_locale(lang, speaks):
     assert DoublecheckSkill.speaks(lang) is speaks
 
 
-def test_the_question_quotes_the_user(skill):
-    assert skill.dialog_renderer.render("confirm", {"utterance": "unlock the front door"}) == \
-        "I think you said: unlock the front door. Should I do that?"
+# Galician waits for a Galician yes/no in OVOS's parser: none of workshop 0.x, 8 or 9 can read "si" in gl.
+@pytest.mark.parametrize("lang, question, cancelled", [
+    ("en-us", "I think you said: unlock the front door. Should I do that?", "OK, I won't."),
+    ("ca-es", "Crec que has dit: unlock the front door. Ho faig?", "D'acord, no ho faré."),
+    ("fr-fr", "Je crois que vous avez dit : unlock the front door. Je le fais ?", "D'accord, je ne le ferai pas."),
+])
+def test_the_question_quotes_the_user(skill, lang, question, cancelled):
+    renderer = skill.load_lang(lang=lang).dialog_renderer
+    assert renderer.render("confirm", {"utterance": "unlock the front door"}) == question
+    assert renderer.render("cancelled", {}) == cancelled
 
 
 def test_a_dispatch_without_a_held_label_asks_nothing(skill):
