@@ -1,0 +1,44 @@
+name: Run Unit Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        # Both supported ovos-workshop APIs: 0.x is what Neon Hub runs (add_event has no
+        # intent_name there); current OVOS runs 9.x.
+        ovos-workshop: ["<1.0.0", ">=8"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # A venv, not --system: the runner's Python is externally managed (PEP 668) and refuses installs.
+      # Package and workshop pin install together so the resolver satisfies both.
+      - name: Install dependencies
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install -e ".[test,dev]" "ovos-workshop${{ matrix.ovos-workshop }}"
+
+      - name: Show resolved ovos-workshop
+        run: .venv/bin/python -c "import importlib.metadata as m; print('ovos-workshop', m.version('ovos-workshop'))"
+
+      - name: Run tests
+        run: .venv/bin/pytest
+
+      - name: Ruff
+        run: .venv/bin/ruff check .
+
+      - name: Pylint
+        run: .venv/bin/pylint ovos_skill_doublecheck
