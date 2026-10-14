@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ovos-skill-doublecheck"
+dynamic = ["version"]
+description = "An OVOS skill that asks before running a high-risk request Switchboard held, and runs it only on a clear yes"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "Oscillate Labs", email = "mike@oscillatelabs.net" }
+]
+keywords = ["ovos", "neon", "skill", "voice", "intent", "pipeline", "switchboard", "confirmation"]
+classifiers = [
+    # Guards against an accidental `uv publish` reaching PyPI while the repo is private.
+    "Private :: Do Not Upload",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+requires-python = ">=3.11"
+# Both ovos-workshop APIs: 0.x (Neon Hub pins and runs 0.1.7) and current OVOS (9.x).
+dependencies = [
+    "ovos-bus-client>=0.1.6",
+    "ovos-workshop>=0.1.7,!=1.*,!=2.*,!=3.*,!=4.*,!=5.*,!=6.*,!=7.*",
+    "ovos-utils>=0.8.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "ovos-plugin-manager",
+    "pytest",
+    "pytest-cov",
+]
+dev = [
+    "pylint>=3.0.0",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/OscillateLabsLLC/doublecheck"
+Repository = "https://github.com/OscillateLabsLLC/doublecheck"
+
+[project.entry-points."ovos.plugin.skill"]
+"ovos-skill-doublecheck.oscillatelabsllc" = "ovos_skill_doublecheck:DoublecheckSkill"
+
+[tool.hatch.version]
+source = "code"
+path = "ovos_skill_doublecheck/version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ovos_skill_doublecheck"]
+
+[tool.ruff]
+line-length = 119
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle
+    "F", # pyflakes
+    "I", # isort
+]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+combine-as-imports = true
+
+[tool.pylint.format]
+max-line-length = 119
+
+[tool.pylint.messages_control]
+disable = [
+    "W0702", # bare-except
+    "W0718", # broad-exception-caught
+    "C0114", # missing-module-docstring
+    "W0201", # attribute-defined-outside-init
+    "C0415", # import-outside-toplevel
+]
