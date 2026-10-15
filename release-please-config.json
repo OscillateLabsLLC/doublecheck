@@ -1,0 +1,14 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "initial-version": "1.0.0",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "ovos_skill_doublecheck/version.py"
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,7 @@
 # Doublecheck
 
+[![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/OscillateLabsLLC/.github/blob/main/SUPPORT_STATUS.md)
+
 An OVOS skill that asks before a risky request runs. It works with
 [Switchboard](https://github.com/OscillateLabsLLC/switchboard).
 
